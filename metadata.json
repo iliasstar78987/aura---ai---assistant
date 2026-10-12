@@ -1,0 +1,10 @@
+{
+  "name": "Aura AI - Unlimited OpenRouter Assistant",
+  "description": "An advanced, encrypted AI personal assistant with OpenRouter integration, unlimited chat & image generation, voice commands, and bilingual Bengali/English support.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
