@@ -1,6 +1,6 @@
 export type Language = 'bn' | 'en';
 
-export type MoodType = 'friendly' | 'analytical' | 'humorous' | 'empathetic' | 'creative';
+export type MoodType = 'friendly' | 'analytical' | 'humorous' | 'empathetic' | 'creative' | 'intimate';
 
 export interface LinkMetadata {
   url: string;

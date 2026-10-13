@@ -56,6 +56,7 @@ export const translations = {
       humorous: 'রসিক ও মজার',
       empathetic: 'শান্ত ও সহানুভূতিশীল',
       creative: 'সৃজনশীল ও দূরদর্শী',
+      intimate: 'একান্ত ও অন্তরঙ্গ সঙ্গী',
     },
     moodDescriptions: {
       friendly: 'সবসময় হাসিখুশি, সহযোগিতাপূর্ণ এবং আন্তরিক মেজাজে উত্তর দেবে',
@@ -63,12 +64,13 @@ export const translations = {
       humorous: 'মজাদার, চটপটে এবং আনন্দদায়ক ব্যক্তিত্ব নিয়ে কথা বলবে',
       empathetic: 'আপনার অনুভূতি বুঝবে এবং পরম শান্তিতে সমর্থন জানাবে',
       creative: 'নতুন আইডিয়া, কল্পনার বিস্তার এবং শৈল্পিক রূপ দেবে',
+      intimate: 'গভীর ভালোবাসা, রোমান্স, ব্যক্তিগত অনুভূতি ও একান্ত গোপন কথা শেয়ার করার পরম বিশ্বস্ত আপনজন',
     },
     promptExamples: [
+      'আজকে আমার মন খুব খারাপ, আমার সাথে একটু একান্ত ব্যক্তিগত কথা বলো',
       'যে কোনো জটিল প্রোগ্রামিং বা বিজ্ঞানের বিষয় সহজ ভাষায় বুঝিয়ে দাও',
       '/image চাঁদের বুকে একদল বাঙালির উৎসবের সিনেমাটিক দৃশ্য আঁকো',
-      'আমার আজকের কাজের জন্য একটি চমৎকার কর্মপরিকল্পনা তৈরি করে দাও',
-      'একটি আকর্ষণীয় গল্প এবং জীবনমুখী উপদেশ দাও',
+      'আমার জন্য একটি চমৎকার রোমান্টিক কবিতা ও সুন্দর জীবনমুখী ভাবনা লেখো',
     ],
     imageStudioTitle: 'এআই ইমেজ জেনারেশন স্টুডিও',
     promptPlaceholder: 'যে ধরনের ছবি তৈরি করতে চান বিস্তারিত লিখুন...',
@@ -141,6 +143,7 @@ export const translations = {
       humorous: 'Witty & Humorous',
       empathetic: 'Calm & Empathetic',
       creative: 'Creative & Visionary',
+      intimate: 'Intimate & Personal Companion',
     },
     moodDescriptions: {
       friendly: 'Cheerful, helpful, warm and approachable at all times',
@@ -148,6 +151,7 @@ export const translations = {
       humorous: 'Playful, clever and cheerful conversational companion',
       empathetic: 'Emotionally attuned, soothing and supportive listener',
       creative: 'Imaginative, artistic and out-of-the-box conceptualizer',
+      intimate: 'Deeply affectionate, romantic, private confidant for intimate personal conversations and bonding',
     },
     promptExamples: [
       'Explain complex quantum computing or coding principles simply',
@@ -179,4 +183,5 @@ export const moodIcons: Record<MoodType, string> = {
   humorous: '🎭',
   empathetic: '🧘',
   creative: '⚡',
+  intimate: '❤️',
 };

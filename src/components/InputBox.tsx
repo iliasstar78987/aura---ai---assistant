@@ -95,7 +95,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
     e.target.style.height = `${Math.min(e.target.scrollHeight, 180)}px`;
   };
 
-  const moodsList: MoodType[] = ['friendly', 'analytical', 'humorous', 'empathetic', 'creative'];
+  const moodsList: MoodType[] = ['intimate', 'friendly', 'analytical', 'humorous', 'empathetic', 'creative'];
 
   return (
     <div className="p-3 md:p-4 bg-slate-950/80 border-t border-slate-800/80 backdrop-blur-md sticky bottom-0 z-20">

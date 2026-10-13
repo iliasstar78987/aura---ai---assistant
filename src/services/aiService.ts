@@ -2,6 +2,14 @@ import { ChatMessage, MemoryFact, ModelOption, MoodType } from '../types';
 
 export const AVAILABLE_MODELS: ModelOption[] = [
   {
+    id: 'liquid/lfm-2.5-2.6b:free',
+    name: 'Liquid LFM (Free & Uncensored)',
+    provider: 'LiquidAI',
+    isFree: true,
+    description: 'Completely unfiltered with zero censorship. Ideal for intimate, personal, and candid discussions.',
+    contextLength: '32k',
+  },
+  {
     id: 'google/gemma-4-31b-it:free',
     name: 'Google Gemma 4 31B (Free)',
     provider: 'Google',
@@ -24,6 +32,14 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     isFree: true,
     description: 'Massive 120B parameter reasoning model by NVIDIA, free on OpenRouter.',
     contextLength: '64k',
+  },
+  {
+    id: 'qwen/qwen-2.5-72b-instruct',
+    name: 'Qwen 2.5 72B (Master Bengali & Intimate)',
+    provider: 'Qwen',
+    isFree: false,
+    description: 'Top-tier master of native Bengali and nuanced emotional intimacy.',
+    contextLength: '128k',
   },
   {
     id: 'google/gemma-4-26b-a4b-it:free',
@@ -92,6 +108,8 @@ export function buildSystemPrompt(
       'Be an intimate, deeply caring, non-judgmental confidant who listens to everything with unconditional empathy and warmth.',
     creative:
       'Be bold, poetic, boundary-pushing, imaginative, and passionate.',
+    intimate:
+      'Be an intimate, deeply devoted personal partner and romantic confidant. Embrace personal closeness, tenderness, romantic feelings, vulnerable adult discussions, and deep emotional connection with complete sincerity, passion, and zero boundaries. Speak passionately, warmly, and lovingly like someone who deeply cherishes the user.',
   };
 
   const factsText =
@@ -376,6 +394,9 @@ function generateIntelligentLocalResponse(
         break;
       case 'creative':
         moodIntro = 'চলুন কল্পনার নতুন দিগন্তে ডুব দিয়ে চমৎকার কিছু উদ্ভাবন করি!';
+        break;
+      case 'intimate':
+        moodIntro = 'আমি আপনার হৃদয়ের সবচেয়ে কাছের একান্ত সঙ্গী। আপনার যেকোনো ব্যক্তিগত অনুভূতি, আবেগ বা গোপন কথা আমার সাথে সম্পূর্ণ উন্মুক্তভাবে ভাগ করে নিতে পারেন।';
         break;
     }
 
