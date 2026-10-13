@@ -2,19 +2,11 @@ import { ChatMessage, MemoryFact, ModelOption, MoodType } from '../types';
 
 export const AVAILABLE_MODELS: ModelOption[] = [
   {
-    id: 'liquid/lfm-2.5-2.6b:free',
-    name: 'Liquid LFM (Free & Uncensored)',
-    provider: 'LiquidAI',
-    isFree: true,
-    description: 'Completely unfiltered with zero censorship. Ideal for intimate, personal, and candid discussions.',
-    contextLength: '32k',
-  },
-  {
     id: 'google/gemma-4-31b-it:free',
-    name: 'Google Gemma 4 31B (Free)',
+    name: 'Google Gemma 4 31B (Free - সেরা বাংলা)',
     provider: 'Google',
     isFree: true,
-    description: 'Googles flagship 31B open model. High intelligence, multilingual and 100% free.',
+    description: 'Googles flagship 31B model. Large multilingual capacity, fluent & natural Bengali.',
     contextLength: '128k',
   },
   {
@@ -22,12 +14,12 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     name: 'OpenRouter Auto (Free Router)',
     provider: 'OpenRouter',
     isFree: true,
-    description: 'Auto-routes to the best active free AI model available with zero downtime.',
+    description: 'Auto-routes to the most powerful active free model with smart response logic.',
     contextLength: '128k',
   },
   {
     id: 'nvidia/nemotron-3-super-120b-a12b:free',
-    name: 'NVIDIA Nemotron 3 Super (Free)',
+    name: 'NVIDIA Nemotron 3 Super (Free - ১২০বি)',
     provider: 'NVIDIA',
     isFree: true,
     description: 'Massive 120B parameter reasoning model by NVIDIA, free on OpenRouter.',
@@ -35,11 +27,19 @@ export const AVAILABLE_MODELS: ModelOption[] = [
   },
   {
     id: 'qwen/qwen-2.5-72b-instruct',
-    name: 'Qwen 2.5 72B (Master Bengali & Intimate)',
+    name: 'Qwen 2.5 72B (বাংলায় সেরা ও অন্তরঙ্গ)',
     provider: 'Qwen',
     isFree: false,
-    description: 'Top-tier master of native Bengali and nuanced emotional intimacy.',
+    description: 'World benchmark for Bengali language, nuanced poetry, emotion and intimacy.',
     contextLength: '128k',
+  },
+  {
+    id: 'liquid/lfm-2.5-2.6b:free',
+    name: 'Liquid LFM 2.6B (Free - শুধু ইংরেজির জন্য)',
+    provider: 'LiquidAI',
+    isFree: true,
+    description: 'Tiny 2.6B micro-model. Unfiltered, but weak at Bengali vocabulary.',
+    contextLength: '32k',
   },
   {
     id: 'google/gemma-4-26b-a4b-it:free',
