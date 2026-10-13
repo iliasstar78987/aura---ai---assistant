@@ -577,6 +577,11 @@ Please provide a helpful, engaging overview of this website, its key topics, and
           if (newPassphrase !== undefined) {
             setPassphrase(newPassphrase);
           }
+          if (activeSessionId) {
+            setSessions((prev) =>
+              prev.map((s) => (s.id === activeSessionId ? { ...s, model: newSettings.selectedModel } : s))
+            );
+          }
         }}
         onExportBackup={handleExportBackup}
         onImportBackup={handleImportBackup}

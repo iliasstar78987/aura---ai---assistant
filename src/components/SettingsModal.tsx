@@ -11,10 +11,12 @@ import {
   Check,
   Download,
   Upload,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import { AppSettings, ModelOption } from '../types';
 import { translations } from '../utils/translations';
-import { AVAILABLE_MODELS } from '../services/aiService';
+import { AVAILABLE_MODELS, testApiKeyConnection } from '../services/aiService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -43,8 +45,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [confirmPassphrase, setConfirmPassphrase] = useState('');
   const [activeTab, setActiveTab] = useState<'api' | 'security' | 'profile'>('api');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   const t = translations[settings.language];
+
+  const handleTestKey = async () => {
+    if (!apiKey.trim()) return;
+    setIsTesting(true);
+    setTestResult(null);
+    const result = await testApiKeyConnection(apiKey.trim(), customModel.trim() || selectedModel);
+    setTestResult(result);
+    setIsTesting(false);
+  };
 
   if (!isOpen) return null;
 
@@ -169,10 +182,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+
+                {/* API Test Button and Status */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={!apiKey.trim() || isTesting}
+                    onClick={handleTestKey}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {isTesting ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    <span>{settings.language === 'bn' ? 'এপিআই কানেকশন টেস্ট করুন' : 'Test API Connection'}</span>
+                  </button>
+
+                  {testResult && (
+                    <div
+                      className={`text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 ${
+                        testResult.ok
+                          ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'
+                          : 'bg-red-950/60 text-red-300 border border-red-800'
+                      }`}
+                    >
+                      <span>{testResult.ok ? '✅' : '❌'}</span>
+                      <span className="truncate max-w-xs">{testResult.message}</span>
+                    </div>
+                  )}
+                </div>
+
                 <p className="text-[11px] text-slate-400">
                   {settings.language === 'bn'
-                    ? 'আপনার এপিআই কী কোনো সার্ভারে যাবে না; এটি ব্রাউজারে সুরক্ষিত থাকবে এবং সরাসরি ওপেন রাউটার এপিআই কল করবে।'
-                    : 'Your API key is never shared; it stays in your browser and connects directly to OpenRouter.'}
+                    ? 'ওপেন রাউটার (sk-or-v1-...), গুগল জেমিনি (AIza...), বা ওপেনএআই (sk-...) এপিআই কী সরাসরি পেস্ট করুন।'
+                    : 'Paste OpenRouter (sk-or-v1-...), Google Gemini (AIza...), or OpenAI (sk-...) API key.'}
                 </p>
               </div>
 

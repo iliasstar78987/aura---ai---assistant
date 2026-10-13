@@ -114,83 +114,197 @@ export interface SendMessageOptions {
   onStreamChunk?: (chunk: string) => void;
 }
 
+/**
+ * Detects provider based on API key prefix:
+ * - AIza... -> Google Gemini API
+ * - sk-proj-... -> OpenAI API
+ * - sk-or-v1-... or other -> OpenRouter API
+ */
+export function detectProvider(key: string): 'gemini' | 'openai' | 'openrouter' {
+  const trimmed = key.trim();
+  if (trimmed.startsWith('AIza')) {
+    return 'gemini';
+  }
+  if (trimmed.startsWith('sk-proj-')) {
+    return 'openai';
+  }
+  return 'openrouter';
+}
+
+export async function testApiKeyConnection(apiKey: string, model: string = 'meta-llama/llama-3.3-70b-instruct:free'): Promise<{ ok: boolean; message: string }> {
+  const cleanKey = apiKey.trim();
+  if (!cleanKey) {
+    return { ok: false, message: 'Please provide an API key' };
+  }
+
+  const provider = detectProvider(cleanKey);
+
+  try {
+    if (provider === 'gemini') {
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cleanKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Hello' }] }],
+          }),
+        }
+      );
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        return { ok: false, message: err?.error?.message || `Gemini Error ${resp.status}` };
+      }
+      return { ok: true, message: 'Google Gemini API Connected!' };
+    }
+
+    if (provider === 'openai') {
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${cleanKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: 'hi' }],
+          max_tokens: 5,
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        return { ok: false, message: err?.error?.message || `OpenAI Error ${resp.status}` };
+      }
+      return { ok: true, message: 'OpenAI API Connected!' };
+    }
+
+    // Default: OpenRouter
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cleanKey}`,
+        'X-Title': 'Aura AI',
+      },
+      body: JSON.stringify({
+        model: model || 'meta-llama/llama-3.3-70b-instruct:free',
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 5,
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      const msg = err?.error?.message || `OpenRouter Error ${resp.status}`;
+      return { ok: false, message: msg };
+    }
+
+    return { ok: true, message: 'OpenRouter Connected Successfully!' };
+  } catch (e: any) {
+    return { ok: false, message: e?.message || 'Connection failed. Please check network/key.' };
+  }
+}
+
 export async function sendChatMessage(options: SendMessageOptions): Promise<string> {
   const { apiKey, model, messages, mood, language, memoryFacts, userName, onStreamChunk } = options;
+  const cleanKey = apiKey ? apiKey.trim() : '';
 
   const systemPrompt = buildSystemPrompt(mood, language, memoryFacts, userName);
 
-  // Prepare message history formatted for OpenAI / OpenRouter specs
-  const formattedMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messages.slice(-16).map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-  ];
+  if (cleanKey && cleanKey.length > 5) {
+    const provider = detectProvider(cleanKey);
 
-  // If user provided OpenRouter API Key
-  if (apiKey && apiKey.trim().length > 5) {
+    // 1. Google Gemini Native API
+    if (provider === 'gemini') {
+      try {
+        const targetModel = 'gemini-2.0-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${cleanKey}`;
+        
+        const lastUser = messages[messages.length - 1]?.content || 'Hello';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: lastUser }] }],
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(`Google Gemini Error (${response.status}): ${err?.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        return text;
+      } catch (e: any) {
+        console.error('Gemini request failed:', e);
+        throw e;
+      }
+    }
+
+    // 2. OpenAI Native API
+    if (provider === 'openai') {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${cleanKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...messages.slice(-12).map((m) => ({ role: m.role, content: m.content })),
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(`OpenAI Error (${response.status}): ${err?.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || '';
+      } catch (e: any) {
+        console.error('OpenAI request failed:', e);
+        throw e;
+      }
+    }
+
+    // 3. OpenRouter API
     try {
+      const formattedMessages = [
+        { role: 'system', content: systemPrompt },
+        ...messages.slice(-16).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      ];
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey.trim()}`,
-          'HTTP-Referer': window.location.origin || 'https://aura-ai.local',
+          Authorization: `Bearer ${cleanKey}`,
           'X-Title': 'Aura AI Super Assistant',
         },
         body: JSON.stringify({
           model: model || 'meta-llama/llama-3.3-70b-instruct:free',
           messages: formattedMessages,
-          stream: !!onStreamChunk,
+          stream: false,
         }),
       });
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
         const errMsg = errJson?.error?.message || response.statusText;
-        throw new Error(`OpenRouter API Error (${response.status}): ${errMsg}`);
+        throw new Error(`OpenRouter (${response.status}): ${errMsg}`);
       }
 
-      if (onStreamChunk && response.body) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let fullText = '';
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('data: ')) {
-              const dataStr = trimmed.substring(6);
-              if (dataStr === '[DONE]') continue;
-              try {
-                const parsed = JSON.parse(dataStr);
-                const delta = parsed.choices?.[0]?.delta?.content || '';
-                if (delta) {
-                  fullText += delta;
-                  onStreamChunk(fullText);
-                }
-              } catch {
-                // Ignore incomplete SSE chunk
-              }
-            }
-          }
-        }
-
-        if (fullText.trim()) {
-          return fullText;
-        }
-      }
-
-      // Non-streaming fallback
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || '';
       return content;
@@ -200,9 +314,7 @@ export async function sendChatMessage(options: SendMessageOptions): Promise<stri
     }
   }
 
-  // Fallback engine if OpenRouter API Key is not yet configured:
-  // We provide a rich, real intelligent conversational response informing how to enjoy full OpenRouter
-  // and answering the query with high empathy and intelligence!
+  // Fallback intelligent response if no API key is set
   const lastUserMsg = messages[messages.length - 1]?.content || '';
   return generateIntelligentLocalResponse(lastUserMsg, mood, language, memoryFacts, userName);
 }
@@ -241,43 +353,20 @@ function generateIntelligentLocalResponse(
 
 আপনার বার্তা: "${userQuery}"
 
-💡 **ওপেন রাউটার এপিআই সংযোগ নির্দেশিকা**:
-আপনার পছন্দমতো যেকোনো শক্তিশালী মডেল (Llama 3.3 70B, DeepSeek R1, GPT-4o, Claude 3.5 Sonnet) সীমাহীন ও কন্ডিশনহীনভাবে ব্যবহার করার জন্য উপরের **"সেটিংস" (Settings)** আইকন থেকে আপনার **OpenRouter API Key** যুক্ত করে নিন।
+💡 **এপিআই সক্রিয়করণ তথ্য**:
+আপনার পছন্দের মডেল (OpenRouter, Gemini, OpenAI) সীমাহীন ও কন্ডিশনহীনভাবে ব্যবহার করতে উপরের **সেটিংস (Settings)** আইকন থেকে আপনার এপিআই কী যুক্ত করে নিন এবং **"টেস্ট কানেকশন"** বাটনে ক্লিক করে যাচাই করুন।
 
-🖼️ **আনলিমিটেড ছবি আঁকার সুবিধা**:
-আপনি এখনই যেকোনো প্রম্পটের আগে \`/image\` লিখে (যেমন: \`/image একটি রাজকীয় প্রাসাদের সূর্যাস্তের দৃশ্য\`) অথবা নিচে ছবির আইকনে ক্লিক করে সীমাহীন ফ্রি হাই-রেজোলিউশন ছবি তৈরি করতে পারেন!
-
-সব কথোপকথন ও তথ্য আপনার ব্রাউজারে সম্পূর্ণ **AES-256 এনক্রিপশনের** মাধ্যমে শতভাগ নিরাপদ সংরক্ষিত থাকবে। আপনার কোনো প্রশ্ন থাকলে এখনই বলুন!`;
+🖼️ **আনলিমিটেড ছবি আঁকা**:
+যেকোনো প্রম্পটের আগে \`/image\` লিখুন (যেমন: \`/image একটি রাজকীয় প্রাসাদের সূর্যাস্ত\`) অথবা নিচের ইমেজ আইকনে ক্লিক করে সরাসরি ফ্রি ও আনলিমিটেড ছবি তৈরি করুন!`;
   } else {
-    let moodIntro = '';
-    switch (mood) {
-      case 'friendly':
-        moodIntro = "I'm delighted to assist you and bring genuine joy to your day!";
-        break;
-      case 'analytical':
-        moodIntro = 'Let us break this down with rigorous precision and data clarity.';
-        break;
-      case 'humorous':
-        moodIntro = 'Ready to have a fun, witty, and productive conversation!';
-        break;
-      case 'empathetic':
-        moodIntro = 'I hear you completely and I am here with calm, mindful support.';
-        break;
-      case 'creative':
-        moodIntro = 'Let us unleash limitless imagination and build extraordinary concepts!';
-        break;
-    }
-
-    return `${nameGreeting}Hello! ${moodIntro}
+    return `${nameGreeting}Hello!
 
 Regarding your inquiry: "${userQuery}"
 
-💡 **OpenRouter API Key Activation**:
-To power Aura AI with unlimited top-tier models (such as Llama 3.3 70B Free, DeepSeek R1 Reasoning, Claude 3.5 Sonnet, GPT-4o), click the **Settings** icon above and paste your **OpenRouter API Key**.
+💡 **API Key Setup**:
+To unlock unlimited intelligence with OpenRouter, Gemini, or OpenAI, open **Settings** and paste your API key, then click **"Test Connection"** to verify.
 
-🖼️ **Unlimited Image Generation**:
-You can immediately create stunning visual artwork anytime! Simply type \`/image <description>\` (e.g., \`/image a cyberpunk city with floating neon gardens\`) or tap the image icon in the input dock.
-
-Your chats, profile, and memories are secured locally with client-side **AES-256 GCM encryption**. What would you like to explore next?`;
+🖼️ **Unlimited Images**:
+Type \`/image <prompt>\` or tap the image icon anytime to generate high-resolution AI art freely!`;
   }
 }
