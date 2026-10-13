@@ -27,6 +27,8 @@ interface SidebarProps {
   onExportBackup: () => void;
   isOpen: boolean;
   onCloseMobile: () => void;
+  canInstall?: boolean;
+  onInstallApp?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -41,6 +43,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onExportBackup,
   isOpen,
   onCloseMobile,
+  canInstall,
+  onInstallApp,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const t = translations[settings.language];
@@ -147,6 +151,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Security & Controls Footer */}
         <div className="p-3 border-t border-slate-800 bg-slate-950/40 space-y-3">
+          {/* PWA Install Button */}
+          {canInstall && onInstallApp && (
+            <button
+              onClick={() => {
+                onInstallApp();
+                onCloseMobile();
+              }}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-cyan-950 to-indigo-950 border border-cyan-500/40 hover:border-cyan-400 text-cyan-200 text-xs font-semibold rounded-lg transition-all shadow-sm"
+            >
+              <span>📲</span>
+              <span>{settings.language === 'bn' ? 'ফোনে অ্যাপ ইনস্টল করুন' : 'Install on Phone'}</span>
+            </button>
+          )}
+
           {/* Encryption Indicator */}
           <div className="flex items-center justify-between text-xs px-2 py-1.5 bg-slate-950/60 rounded-lg border border-slate-800">
             <div className="flex items-center gap-1.5 text-slate-400">

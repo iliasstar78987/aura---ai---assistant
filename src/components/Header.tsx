@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Settings, Sparkles, Brain, Link2, SlidersHorizontal } from 'lucide-react';
+import { ShieldCheck, Settings, Sparkles, Brain, Link2, SlidersHorizontal, Smartphone } from 'lucide-react';
 import { AppSettings, Language } from '../types';
 import { translations } from '../utils/translations';
 
@@ -11,6 +11,8 @@ interface HeaderProps {
   onOpenLinkModal: () => void;
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
+  canInstall?: boolean;
+  onInstallApp?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenLinkModal,
   toggleSidebar,
   isSidebarOpen,
+  canInstall,
+  onInstallApp,
 }) => {
   const t = translations[settings.language];
 
@@ -78,7 +82,16 @@ export const Header: React.FC<HeaderProps> = ({
       </nav>
 
       {/* Zone 3: 1 primary action */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 shrink-0">
+        {canInstall && onInstallApp && (
+          <button
+            onClick={onInstallApp}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-cyan-200 bg-cyan-950/80 border border-cyan-500/50 hover:bg-cyan-900/60 rounded-lg transition-all shadow-sm whitespace-nowrap shrink-0"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{settings.language === 'bn' ? 'অ্যাপ ইনস্টল' : 'Install App'}</span>
+          </button>
+        )}
         <button
           onClick={onOpenSettings}
           className="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-900 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-800 rounded-lg transition-all shadow-sm whitespace-nowrap shrink-0"

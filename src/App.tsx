@@ -47,6 +47,32 @@ export default function App() {
   const [isImageStudioOpen, setIsImageStudioOpen] = useState<boolean>(false);
   const [isMemoryOpen, setIsMemoryOpen] = useState<boolean>(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState<boolean>(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert(
+        settings.language === 'bn'
+          ? 'আপনার ব্রাউজারের মেনু (⋮) থেকে "Install app" অথবা "Add to Home screen" এ ক্লিক করে ইনস্টল করতে পারেন।'
+          : 'You can install this app by opening browser menu (⋮) and selecting "Install app" or "Add to Home screen".'
+      );
+    }
+  };
 
   // Initialize and load persisted data
   useEffect(() => {
@@ -492,6 +518,8 @@ Please provide a helpful, engaging overview of this website, its key topics, and
         onOpenLinkModal={() => setIsLinkModalOpen(true)}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
+        canInstall={true}
+        onInstallApp={handleInstallApp}
       />
 
       {/* Main Workspace Frame */}
@@ -512,6 +540,8 @@ Please provide a helpful, engaging overview of this website, its key topics, and
           onExportBackup={handleExportBackup}
           isOpen={isSidebarOpen}
           onCloseMobile={() => setIsSidebarOpen(false)}
+          canInstall={true}
+          onInstallApp={handleInstallApp}
         />
 
         {/* Central Chat Viewport */}
