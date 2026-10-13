@@ -10,7 +10,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   accentColor: 'cyan',
   openRouterApiKey: '',
-  selectedModel: 'meta-llama/llama-3.3-70b-instruct:free',
+  selectedModel: 'google/gemma-4-31b-it:free',
   temperature: 0.7,
   systemPromptPreset: 'unrestricted',
   isEncrypted: false,
@@ -111,7 +111,7 @@ export function saveActiveSessionId(id: string): void {
 
 export function createNewSession(
   title: string = 'নতুন কথোপকথন',
-  model: string = 'meta-llama/llama-3.3-70b-instruct:free'
+  model: string = 'google/gemma-4-31b-it:free'
 ): ChatSession {
   return {
     id: 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
