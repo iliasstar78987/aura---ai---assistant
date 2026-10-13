@@ -278,6 +278,7 @@ export default function App() {
         language: settings.language,
         memoryFacts: settings.userFacts,
         userName: settings.userName,
+        temperature: settings.temperature ?? 0.85,
       });
 
       // Check if bot response mentions or introduces website links with imagery

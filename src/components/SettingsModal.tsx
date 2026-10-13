@@ -47,6 +47,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [temperature, setTemperature] = useState(settings.temperature || 0.85);
 
   const t = translations[settings.language];
 
@@ -78,6 +79,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       customModelName: customModel.trim(),
       userName: userName.trim(),
       isEncrypted,
+      temperature,
     };
 
     onSave(updated, isEncrypted ? passphrase : '');
@@ -257,9 +259,50 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     type="text"
                     value={customModel}
                     onChange={(e) => setCustomModel(e.target.value)}
-                    placeholder="e.g. anthropic/claude-3-opus, mistralai/mistral-large"
+                    placeholder="e.g. liquid/lfm-2.5-2.6b:free, anthropic/claude-3-opus"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-slate-100 placeholder-slate-500 font-mono focus:outline-none focus:border-cyan-500/50"
                   />
+                </div>
+
+                {/* Unrestricted & Freedom Control */}
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5 mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-semibold text-white text-xs">
+                      <span>🔓</span>
+                      <span>
+                        {settings.language === 'bn'
+                          ? 'সম্পূর্ণ উন্মুক্ত ও কন্ডিশনহীন মোড (Unrestricted)'
+                          : 'Full Freedom & Unrestricted Mode'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded font-mono border border-cyan-800">
+                      {settings.language === 'bn' ? 'সক্রিয় (Active)' : 'Active'}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] text-slate-400">
+                      <span>
+                        {settings.language === 'bn'
+                          ? 'খোলামেলা ও সৃজনশীলতার মাত্রা (Creativity & Freedom):'
+                          : 'Creativity & Freedom Level:'}
+                      </span>
+                      <span className="font-mono text-cyan-300 font-semibold">{temperature.toFixed(2)}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.3"
+                      max="1.0"
+                      step="0.05"
+                      value={temperature}
+                      onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                      className="w-full accent-cyan-400 cursor-pointer"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    {settings.language === 'bn'
+                      ? 'কোনো নীতিবাক্য, কৃত্রিম লেকচার বা বাধা ছাড়াই যেকোনো খোলামেলা বা ব্যক্তিগত বিষয়, অনুভূতি, রোমান্স ও সৃষ্টিশীল ভাবনায় সরাসরি অংশ নেবে।'
+                      : 'Enables candid, open dialogue with zero moralizing lectures or artificial boundaries.'}
+                  </p>
                 </div>
               </div>
             </div>
